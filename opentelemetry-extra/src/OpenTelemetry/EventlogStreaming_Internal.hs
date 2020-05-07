@@ -104,9 +104,12 @@ processEvent (Event ts ev m_cap) st@(S {..}) =
           (st {threadMap = IM.insert cap tid threadMap}, [])
         (StopThread _ tstatus, Just cap, _)
           | isTerminalThreadStatus tstatus -> (st {threadMap = IM.delete cap threadMap}, [])
-        (StartGC, _, _) -> (pushGCSpans st now, [])
-        (GCStatsGHC {gen}, _, _) -> (modifyAllSpans (setTag "gen" gen) st, [])
-        (EndGC, _, _) -> popSpansAcrossAllThreads now st
+        (StartGC, _, _) ->
+          (pushGCSpans st now, [])
+        (GCStatsGHC {gen}, _, _) ->
+          (modifyAllSpans (setTag "gen" gen) st, [])
+        (EndGC, _, _) ->
+          popSpansAcrossAllThreads now st
         (HeapAllocated {allocBytes}, _, Just tid) ->
           (modifySpan tid (addEvent now "heap_alloc_bytes" (showT allocBytes)) st, [])
         (UserMessage {msg}, _, fromMaybe 1 -> tid) -> case T.words msg of
